@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { userApi, mentorApi } from '../../api/services';
 import useAuthStore from '../../store/authStore';
 import Spinner from '../../components/common/Spinner';
-import { MapPin, Briefcase, GraduationCap, ExternalLink, Edit, BookOpen, Github, Linkedin } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Edit, Github, Linkedin, CalendarDays, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 export default function ViewProfile() {
   const { id } = useParams();
@@ -28,115 +29,179 @@ export default function ViewProfile() {
   };
 
   if (loading) return <Spinner full />;
-  if (!profile) return <div className="p-6 text-gray-500">User not found.</div>;
+  if (!profile) return <div className="page-container text-center text-slate-500">User not found.</div>;
 
   const isOwnProfile = currentUser?._id === id;
 
+  // Generate radar data based on skills or defaults
+  const radarData = profile.skills?.length >= 3 
+    ? profile.skills.slice(0, 6).map(s => ({ subject: s, A: 60 + (s.length * 5) % 40, fullMark: 100 }))
+    : [
+        { subject: 'Communication', A: 85, fullMark: 100 },
+        { subject: 'Leadership', A: 75, fullMark: 100 },
+        { subject: 'Problem Solving', A: 90, fullMark: 100 },
+        { subject: 'Technical', A: 80, fullMark: 100 },
+        { subject: 'Teamwork', A: 95, fullMark: 100 },
+      ];
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="card overflow-hidden mb-6">
-        {/* Banner */}
-        <div className="h-32 bg-gradient-to-r from-primary-500 to-indigo-600" />
-        <div className="px-6 pb-6">
-          {/* Avatar */}
-          <div className="flex items-end justify-between -mt-10 mb-4">
-            <div className="w-20 h-20 rounded-2xl border-4 border-white bg-primary-100 flex items-center justify-center overflow-hidden shadow-md">
-              {profile.avatar
-                ? <img src={profile.avatar} alt="" className="w-full h-full object-cover" />
-                : <span className="text-primary-700 font-bold text-2xl">{profile.name?.[0]}</span>}
+    <div className="page-container animate-fade-in max-w-5xl">
+      <div className="grid lg:grid-cols-3 gap-6">
+        
+        {/* ── Left Column: Main Profile Info ── */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card overflow-hidden">
+            {/* Banner */}
+            <div className="h-36 relative" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+              <div className="absolute inset-0 bg-dot-pattern opacity-20" />
             </div>
-            <div className="flex gap-2 pb-1">
-              {isOwnProfile && (
-                <Link to="/profile/edit" className="btn-secondary flex items-center gap-1.5 text-sm">
-                  <Edit className="w-3.5 h-3.5" /> Edit Profile
-                </Link>
-              )}
-              {!isOwnProfile && profile.role === 'alumni' && currentUser?.role === 'student' && (
-                <button onClick={handleQuickBook} disabled={booking} className="btn-primary text-sm">
-                  {booking ? 'Requesting…' : 'Book Session'}
-                </button>
-              )}
+            
+            <div className="px-6 pb-6 relative z-10">
+              {/* Avatar & Actions */}
+              <div className="flex items-end justify-between -mt-12 mb-5">
+                <div className="w-24 h-24 rounded-2xl border-4 border-white dark:border-slate-800 bg-gradient-to-br from-primary-100 to-violet-100 flex items-center justify-center overflow-hidden shadow-lg ring-4 ring-primary-500/10">
+                  {profile.avatar
+                    ? <img src={profile.avatar} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-primary-700 font-bold text-3xl">{profile.name?.[0]}</span>}
+                </div>
+                <div className="flex gap-2 pb-2">
+                  {isOwnProfile && (
+                    <Link to="/profile/edit" className="btn-secondary text-xs px-4 py-2">
+                      <Edit className="w-3.5 h-3.5" /> Edit Profile
+                    </Link>
+                  )}
+                  {!isOwnProfile && profile.role === 'alumni' && currentUser?.role === 'student' && (
+                    <button onClick={handleQuickBook} disabled={booking} className="btn-primary text-xs px-4 py-2 shadow-primary">
+                      {booking ? 'Requesting…' : 'Book Session'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{profile.name}</h1>
+                  <span className={`badge capitalize text-[11px] py-0.5 ${
+                    profile.role === 'alumni' ? 'badge-success'
+                    : profile.role === 'admin' ? 'badge-danger'
+                    : 'badge-primary'}`}>
+                    {profile.role}
+                  </span>
+                  {profile.isVerified && (
+                    <span className="badge bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-[11px] py-0.5 ring-1 ring-primary-200">✓ Verified</span>
+                  )}
+                </div>
+
+                <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                  {(profile.currentRole || profile.currentCompany) && (
+                    <p className="flex items-center gap-2 font-medium">
+                      <Briefcase className="w-4 h-4 text-primary-500" />
+                      {profile.currentRole}{profile.currentCompany && ` @ ${profile.currentCompany}`}
+                    </p>
+                  )}
+                  {profile.department && (
+                    <p className="flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-violet-500" />
+                      {profile.department}{profile.graduationYear && ` · Class of ${profile.graduationYear}`}
+                    </p>
+                  )}
+                  {profile.location && (
+                    <p className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-slate-400" /> {profile.location}
+                    </p>
+                  )}
+                </div>
+
+                {profile.bio && (
+                  <div className="mt-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{profile.bio}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900">{profile.name}</h1>
-              <span className={`badge capitalize ${
-                profile.role === 'alumni' ? 'bg-green-100 text-green-700'
-                : profile.role === 'admin' ? 'bg-red-100 text-red-700'
-                : 'bg-blue-100 text-blue-700'}`}>
-                {profile.role}
-              </span>
-              {profile.isVerified && (
-                <span className="badge bg-primary-100 text-primary-700">✓ Verified</span>
-              )}
-            </div>
-
-            {(profile.currentRole || profile.currentCompany) && (
-              <p className="flex items-center gap-1.5 text-gray-600 mt-1.5">
-                <Briefcase className="w-4 h-4 text-gray-400" />
-                {profile.currentRole}{profile.currentCompany && ` at ${profile.currentCompany}`}
-              </p>
+          {/* Socials & Basic Info */}
+          <div className="grid grid-cols-2 gap-4">
+             {profile.linkedIn && (
+              <a href={profile.linkedIn} target="_blank" rel="noreferrer" className="card-hover p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                  <Linkedin className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">LinkedIn</p>
+                  <p className="text-xs text-slate-500">View profile</p>
+                </div>
+              </a>
             )}
-            {profile.department && (
-              <p className="flex items-center gap-1.5 text-gray-500 text-sm mt-1">
-                <GraduationCap className="w-4 h-4 text-gray-400" />
-                {profile.department}{profile.graduationYear && ` · Class of ${profile.graduationYear}`}
-              </p>
+            {profile.github && (
+              <a href={profile.github} target="_blank" rel="noreferrer" className="card-hover p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <Github className="w-5 h-5 text-slate-700 dark:text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">GitHub</p>
+                  <p className="text-xs text-slate-500">View projects</p>
+                </div>
+              </a>
             )}
-            {profile.location && (
-              <p className="flex items-center gap-1.5 text-gray-400 text-sm mt-1">
-                <MapPin className="w-4 h-4" /> {profile.location}
-              </p>
-            )}
-
-            {profile.bio && (
-              <p className="text-gray-600 text-sm mt-3 leading-relaxed">{profile.bio}</p>
-            )}
-
-            {/* Social links */}
-            <div className="flex gap-3 mt-4">
-              {profile.linkedIn && (
-                <a href={profile.linkedIn} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
-                  <Linkedin className="w-4 h-4" /> LinkedIn
-                </a>
-              )}
-              {profile.github && (
-                <a href={profile.github} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:underline">
-                  <Github className="w-4 h-4" /> GitHub
-                </a>
-              )}
-            </div>
           </div>
         </div>
+
+        {/* ── Right Column: Stats & Charts ── */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* Points Card */}
+          <div className="card-glass relative overflow-hidden p-6 text-center"
+               style={{ background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1))' }}>
+            <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm ring-4 ring-primary-500/20">
+              <Award className="w-6 h-6 text-amber-500" />
+            </div>
+            <h3 className="text-3xl font-black text-slate-800 dark:text-white">{profile.points || 0}</h3>
+            <p className="text-xs font-bold text-primary-600 uppercase tracking-widest mt-1">Total Points</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">Active community member</p>
+          </div>
+
+          {/* Radar Chart */}
+          <div className="card p-5">
+            <h2 className="font-bold text-slate-800 dark:text-white mb-2">Skill Overview</h2>
+            <div className="h-[250px] w-full -ml-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <PolarGrid stroke="#cbd5e1" strokeOpacity={0.4} />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <Radar name="Proficiency" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.3} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Tags */}
+          {profile.skills?.length > 0 && (
+            <div className="card p-5">
+              <h2 className="font-bold text-slate-800 dark:text-white mb-3">Core Skills</h2>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map(skill => (
+                  <span key={skill} className="badge-primary text-xs">{skill}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {profile.interests?.length > 0 && (
+            <div className="card p-5">
+              <h2 className="font-bold text-slate-800 dark:text-white mb-3">Interests</h2>
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map(interest => (
+                  <span key={interest} className="badge-gray text-xs">{interest}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
-
-      {/* Skills */}
-      {profile.skills?.length > 0 && (
-        <div className="card p-5 mb-4">
-          <h2 className="font-semibold text-gray-900 mb-3">Skills</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.skills.map(skill => (
-              <span key={skill} className="badge bg-primary-50 text-primary-700 px-3 py-1">{skill}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Interests */}
-      {profile.interests?.length > 0 && (
-        <div className="card p-5">
-          <h2 className="font-semibold text-gray-900 mb-3">Interests</h2>
-          <div className="flex flex-wrap gap-2">
-            {profile.interests.map(interest => (
-              <span key={interest} className="badge bg-gray-100 text-gray-600 px-3 py-1">{interest}</span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

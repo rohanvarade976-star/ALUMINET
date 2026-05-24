@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/authStore";
 import useSocketStore from "./store/socketStore";
+import useThemeStore from "./store/themeStore";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import VerifyEmail from "./pages/Auth/VerifyEmail";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 import StudentDashboard from "./pages/Dashboard/StudentDashboard";
 import AlumniDashboard from "./pages/Dashboard/AlumniDashboard";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
@@ -49,19 +53,28 @@ const DashboardRouter = () => {
 export default function App() {
   const { init, user, accessToken, loading } = useAuthStore();
   const { connect, disconnect } = useSocketStore();
-  useEffect(() => { init(); }, []);
+  const { initTheme } = useThemeStore();
+  
+  useEffect(() => { 
+    init(); 
+    initTheme();
+  }, []);
+  
   useEffect(() => {
     if (user && accessToken) connect(accessToken);
     else disconnect();
   }, [user, accessToken]);
   if (loading) return <Spinner full />;
   return (
+    <ErrorBoundary>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Toaster position="top-right" toastOptions={{ duration: 3500, style: { background: "#fff", color: "#1e293b", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "14px", fontWeight: "500", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }, success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } }, error: { iconTheme: { primary: "#dc2626", secondary: "#fff" } } }} />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardRouter />} />
@@ -89,5 +102,6 @@ export default function App() {
       </Routes>
       {user && <ChatBot />}
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }

@@ -1,101 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 16px; }
-  body { @apply bg-slate-50 text-slate-800 font-sans antialiased; }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { @apply bg-slate-100; }
-  ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+  html { font-size: 18px; scroll-behavior: smooth; }
+  body { @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 font-sans antialiased transition-colors duration-300; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-300; }
+
+  ::selection { @apply bg-primary-100 text-primary-900; }
 }
 
 @layer components {
+
+  /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-medium px-4 py-2.5 rounded-xl transition-all duration-150 shadow-primary hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm;
+    @apply inline-flex items-center justify-center gap-2
+           bg-gradient-to-r from-primary-600 to-violet-600
+           hover:from-primary-700 hover:to-violet-700
+           active:scale-95
+           text-white font-semibold px-5 py-3 rounded-xl
+           transition-all duration-200 shadow-primary hover:shadow-primary-lg
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
+           disabled:active:scale-100 text-base;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-medium px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-150 shadow-card text-sm;
-  }
-  .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 bg-danger-600 hover:bg-danger-700 text-white font-medium px-4 py-2.5 rounded-xl transition-all duration-150 text-sm;
+    @apply inline-flex items-center justify-center gap-2
+           bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 active:scale-95
+           text-slate-700 dark:text-slate-200 font-semibold px-5 py-3 rounded-xl
+           border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600
+           transition-all duration-200 shadow-card text-base;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium px-3 py-2 rounded-xl transition-all duration-150 text-sm;
+    @apply inline-flex items-center justify-center gap-2
+           text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800
+           active:bg-slate-200 dark:active:bg-slate-700 active:scale-95
+           font-semibold px-3 py-2 rounded-xl transition-all duration-150 text-sm;
   }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           bg-danger-600 hover:bg-danger-700 active:scale-95
+           text-white font-semibold px-5 py-2.5 rounded-xl
+           transition-all duration-200 text-sm;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-9 h-9 rounded-xl
+           hover:bg-slate-100 active:bg-slate-200 active:scale-95
+           text-slate-500 hover:text-slate-800 transition-all duration-150;
+  }
+
+  /* ── Cards ── */
   .card {
-    @apply bg-white rounded-2xl border border-slate-100 shadow-card;
+    @apply bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-card transition-colors duration-300;
   }
   .card-hover {
-    @apply bg-white rounded-2xl border border-slate-100 shadow-card hover:shadow-card-hover hover:border-slate-200 transition-all duration-200 cursor-pointer;
+    @apply bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-card
+           hover:shadow-card-hover hover:border-slate-200 dark:hover:border-slate-600 hover:-translate-y-0.5
+           transition-all duration-200 cursor-pointer;
   }
+  .card-glass {
+    @apply bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl border border-white/50 dark:border-slate-600/50 shadow-glass transition-colors duration-300;
+  }
+
+  /* ── Inputs ── */
   .input {
-    @apply w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-400 transition-all duration-150;
+    @apply w-full px-4 py-3 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-600 rounded-xl
+           text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-base
+           focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-400
+           hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-150;
   }
   .label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    @apply block text-base font-semibold text-slate-700 dark:text-slate-300 mb-1.5;
   }
-  .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  .input-group {
+    @apply space-y-1.5;
   }
-  .badge-primary { @apply badge bg-primary-50 text-primary-700; }
-  .badge-success { @apply badge bg-success-50 text-success-700; }
-  .badge-warning { @apply badge bg-warning-50 text-warning-600; }
-  .badge-danger  { @apply badge bg-danger-50 text-danger-600; }
-  .badge-gray    { @apply badge bg-slate-100 text-slate-600; }
-  .page-header {
-    @apply mb-6;
-  }
-  .page-title {
-    @apply text-2xl font-bold text-slate-900;
-  }
-  .page-subtitle {
-    @apply text-slate-500 mt-1 text-sm;
-  }
+
+  /* ── Badges ── */
+  .badge { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold; }
+  .badge-primary { @apply badge bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-100 dark:ring-primary-800; }
+  .badge-success { @apply badge bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300 ring-1 ring-success-100 dark:ring-success-800; }
+  .badge-warning { @apply badge bg-warning-50 dark:bg-warning-900/30 text-warning-600 dark:text-warning-300 ring-1 ring-warning-100 dark:ring-warning-800; }
+  .badge-danger  { @apply badge bg-danger-50 dark:bg-danger-900/30 text-danger-600 dark:text-danger-300 ring-1 ring-danger-100 dark:ring-danger-800; }
+  .badge-violet  { @apply badge bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 ring-1 ring-violet-100 dark:ring-violet-800; }
+  .badge-gray    { @apply badge bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300; }
+
+  /* ── Page layout ── */
+  .page-container { @apply p-6 max-w-7xl mx-auto; }
+  .page-header    { @apply mb-7; }
+  .page-title     { @apply text-3xl font-bold text-slate-900 dark:text-white tracking-tight; }
+  .page-subtitle  { @apply text-slate-600 dark:text-slate-300 mt-1.5 text-base font-medium; }
+  .section-title  { @apply text-xl font-bold text-slate-900 dark:text-white mb-4; }
+
+  /* ── Sidebar nav ── */
   .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:text-slate-900 hover:bg-slate-100;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold
+           transition-all duration-150 text-slate-200 hover:text-white hover:bg-white/10;
   }
   .sidebar-link-active {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold
+           bg-white/15 text-white border border-white/20 shadow-inner-glow;
   }
-  .stat-card {
-    @apply card p-5;
+
+  /* ── Stat card ── */
+  .stat-card { @apply card p-5; }
+
+  /* ── Divider ── */
+  .divider { @apply border-t border-slate-100 dark:border-slate-700/50 my-4; }
+
+  /* ── Gradient text ── */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-violet-600 bg-clip-text text-transparent;
   }
-  .divider {
-    @apply border-t border-slate-100 my-4;
+  .gradient-text-aurora {
+    @apply bg-gradient-aurora bg-clip-text text-transparent;
   }
-  .section-title {
-    @apply text-base font-semibold text-slate-800 mb-4;
+
+  /* ── Glow effects ── */
+  .glow-ring {
+    @apply ring-2 ring-primary-400/30 ring-offset-2;
+  }
+
+  /* ── Glass panel ── */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  /* ── Avatar ── */
+  .avatar {
+    @apply rounded-full object-cover flex-shrink-0 overflow-hidden
+           ring-2 ring-white shadow-sm;
   }
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideRight {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+/* ── Animations ── */
+@keyframes fadeIn    { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideIn   { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+@keyframes scaleIn   { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
+@keyframes bounceIn  { 0%{ opacity:0; transform:scale(0.8); } 70%{ transform:scale(1.04); } 100%{ opacity:1; transform:scale(1); } }
+@keyframes shimmer   { 0%{ background-position:-200% 0; } 100%{ background-position:200% 0; } }
+@keyframes float     { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+@keyframes spin-slow { from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+@keyframes gradientShift { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
 
-.animate-fade-in   { animation: fadeIn 0.35s ease forwards; }
-.animate-slide-in  { animation: slideRight 0.3s ease forwards; }
-.animate-scale-in  { animation: scaleIn 0.25s ease forwards; }
+.animate-fade-in    { animation: fadeIn 0.4s ease forwards; }
+.animate-slide-in   { animation: slideIn 0.3s ease forwards; }
+.animate-scale-in   { animation: scaleIn 0.25s ease forwards; }
+.animate-bounce-in  { animation: bounceIn 0.45s ease forwards; }
+.animate-float      { animation: float 5s ease-in-out infinite; }
+.animate-spin-slow  { animation: spin-slow 8s linear infinite; }
 
+/* ── Skeleton ── */
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e8eef5 50%, #f1f5f9 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.6s infinite;
   border-radius: 8px;
+}
+
+/* ── Stagger helpers ── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+
+/* ── Gradient border ── */
+.gradient-border {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #4f46e5, #7c3aed) border-box;
+  border: 1.5px solid transparent;
+}
+
+/* ── Scrollbar hidden ── */
+.scrollbar-hidden::-webkit-scrollbar { display: none; }
+.scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Background patterns ── */
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.bg-grid-pattern {
+  background-image: linear-gradient(#e2e8f0 1px, transparent 1px),
+                    linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ── Animated gradient background ── */
+.animated-gradient {
+  background: linear-gradient(-45deg, #4f46e5, #7c3aed, #2563eb, #0ea5e9);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
 }

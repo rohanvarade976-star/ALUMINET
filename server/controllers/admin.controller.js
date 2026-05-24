@@ -3,17 +3,26 @@ const Event = require('../models/Event');
 const MentorSession = require('../models/MentorSession');
 const ForumPost = require('../models/ForumPost');
 const FraudLog = require('../models/FraudLog');
+const JobPosting = require('../models/JobPosting');
+const StudyGroup = require('../models/StudyGroup');
 
 exports.getDashboardStats = async (req, res) => {
   try {
-    const [totalUsers, students, alumni, events, sessions, fraudLogs, recentUsers] = await Promise.all([
+    const [
+      totalUsers, students, alumni, events, sessions,
+      fraudLogs, forumPosts, jobs, studyGroups, recentUsers
+    ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'student' }),
       User.countDocuments({ role: 'alumni' }),
       Event.countDocuments(),
       MentorSession.countDocuments(),
       FraudLog.countDocuments({ resolved: false }),
-      User.find().sort({ createdAt: -1 }).limit(5).select('name email role avatar createdAt isVerified')
+      ForumPost.countDocuments(),
+      JobPosting.countDocuments({ isActive: true }),
+      StudyGroup.countDocuments({ isActive: true }),
+      User.find().sort({ createdAt: -1 }).limit(5)
+        .select('name email role avatar createdAt isVerified')
     ]);
 
     // Monthly signups for chart (last 6 months)
@@ -26,7 +35,7 @@ exports.getDashboardStats = async (req, res) => {
     ]);
 
     res.json({
-      stats: { totalUsers, students, alumni, events, sessions, pendingFraud: fraudLogs },
+      stats: { totalUsers, students, alumni, events, sessions, pendingFraud: fraudLogs, forumPosts, jobs, studyGroups },
       recentUsers,
       monthlySignups
     });
@@ -63,7 +72,11 @@ exports.updateUser = async (req, res) => {
     const { isActive, isFlagged, role } = req.body;
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { ...(isActive !== undefined && { isActive }), ...(isFlagged !== undefined && { isFlagged }), ...(role && { role }) },
+      {
+        ...(isActive !== undefined && { isActive }),
+        ...(isFlagged !== undefined && { isFlagged }),
+        ...(role && { role })
+      },
       { new: true }
     ).select('-password -refreshToken');
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -86,8 +99,18 @@ exports.getFraudLogs = async (req, res) => {
 
 exports.resolveFraudLog = async (req, res) => {
   try {
-    const log = await FraudLog.findByIdAndUpdate(req.params.id, { resolved: true, resolvedBy: req.user._id }, { new: true });
+    const log = await FraudLog.findByIdAndUpdate(
+      req.params.id,
+      { resolved: true, resolvedBy: req.user._id },
+      { new: true }
+    );
     if (!log) return res.status(404).json({ error: 'Log not found' });
+
+    // When resolving, optionally clear the user's flag
+    if (log.user) {
+      await User.findByIdAndUpdate(log.user, { isFlagged: false, fraudScore: 0 });
+    }
+
     res.json({ log });
   } catch (err) {
     res.status(500).json({ error: err.message });

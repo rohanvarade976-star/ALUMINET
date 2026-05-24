@@ -10,6 +10,7 @@ const path = require('path');
 
 const connectDB = require('./config/db');
 const { initSocket } = require('./socket/socketHandler');
+const { decayFraudScores } = require('./middleware/fraud.middleware');
 
 // Routes
 const authRoutes         = require('./routes/auth.routes');
@@ -29,7 +30,11 @@ const achievementRoutes  = require('./routes/achievements.routes');
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
-  cors: { origin: process.env.CLIENT_URL || 'http://localhost:5173', methods: ['GET','POST'], credentials: true }
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
 });
 
 connectDB();
@@ -40,31 +45,45 @@ app.use(express.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Global rate limiter (more permissive — auth routes have their own strict limiter)
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
 app.use('/api/', limiter);
+
+// Attach socket.io to every request
 app.use((req, res, next) => { req.io = io; next(); });
 
-app.use('/api/auth',         authRoutes);
-app.use('/api/users',        userRoutes);
-app.use('/api/mentors',      mentorRoutes);
-app.use('/api/events',       eventRoutes);
-app.use('/api/forum',        forumRoutes);
-app.use('/api/chat',         chatRoutes);
-app.use('/api/admin',        adminRoutes);
-app.use('/api/verification', verificationRoutes);
-app.use('/api/ai',           aiRoutes);
+app.use('/api/auth',          authRoutes);
+app.use('/api/users',         userRoutes);
+app.use('/api/mentors',       mentorRoutes);
+app.use('/api/events',        eventRoutes);
+app.use('/api/forum',         forumRoutes);
+app.use('/api/chat',          chatRoutes);
+app.use('/api/admin',         adminRoutes);
+app.use('/api/verification',  verificationRoutes);
+app.use('/api/ai',            aiRoutes);
 app.use('/api/notifications', notifRoutes);
-app.use('/api/jobs',         jobsRoutes);
-app.use('/api/study-groups', studyGroupRoutes);
-app.use('/api/achievements', achievementRoutes);
+app.use('/api/jobs',          jobsRoutes);
+app.use('/api/study-groups',  studyGroupRoutes);
+app.use('/api/achievements',  achievementRoutes);
 
-app.get('/api/health', (req, res) => res.json({ status: 'AlumiNet v4 running 🚀', ai: 'Groq (llama3-70b)', timestamp: new Date() }));
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'AlumiNet v4 running 🚀', ai: 'Groq (llama-3.3-70b-versatile)', timestamp: new Date() })
+);
 
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
 });
 
 initSocket(io);
+
+// Scheduled fraud score decay — runs every 24 hours
+setInterval(decayFraudScores, 24 * 60 * 60 * 1000);
+// Also run once on startup (after DB is likely ready)
+setTimeout(decayFraudScores, 10000);
+
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 AlumiNet v4 server on port ${PORT} | AI: Groq`));
+server.listen(PORT, () =>
+  console.log(`🚀 AlumiNet v4 server on port ${PORT} | AI: Groq llama-3.3-70b-versatile`)
+);

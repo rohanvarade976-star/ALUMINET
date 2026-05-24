@@ -7,6 +7,8 @@ export const authApi = {
   getMe: () => api.get('/auth/me'),
   verifyEmail: (token) => api.get(`/auth/verify-email/${token}`),
   refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
 };
 
 export const userApi = {

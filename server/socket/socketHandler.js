@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const StudyGroup = require('../models/StudyGroup');
 
 const onlineUsers = new Map(); // userId -> socketId
 
@@ -20,10 +21,23 @@ const initSocket = (io) => {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
+    const userId = socket.user._id.toString();
     console.log(`🔌 Socket connected: ${socket.user.name}`);
-    onlineUsers.set(socket.user._id.toString(), socket.id);
+
+    onlineUsers.set(userId, socket.id);
     io.emit('online_users', Array.from(onlineUsers.keys()));
+
+    // Auto-join personal notification room (user:{id})
+    socket.join(`user:${userId}`);
+
+    // Auto-join all study group rooms the user is a member of
+    try {
+      const myGroups = await StudyGroup.find({ members: socket.user._id, isActive: true }).select('_id');
+      myGroups.forEach(g => socket.join(`group:${g._id}`));
+    } catch (err) {
+      console.warn('Could not auto-join study groups:', err.message);
+    }
 
     // Join a chat room
     socket.on('join_room', (room) => {
@@ -37,7 +51,12 @@ const initSocket = (io) => {
       socket.to(room).emit('user_left', { user: socket.user, room });
     });
 
-    // Send message
+    // Join a study group room explicitly
+    socket.on('join_group', (groupId) => {
+      socket.join(`group:${groupId}`);
+    });
+
+    // Send chat message
     socket.on('send_message', async ({ room, content, type = 'text', fileUrl }) => {
       try {
         const message = await Message.create({
@@ -57,7 +76,7 @@ const initSocket = (io) => {
 
     // Disconnect
     socket.on('disconnect', () => {
-      onlineUsers.delete(socket.user._id.toString());
+      onlineUsers.delete(userId);
       io.emit('online_users', Array.from(onlineUsers.keys()));
       console.log(`🔌 Socket disconnected: ${socket.user.name}`);
     });

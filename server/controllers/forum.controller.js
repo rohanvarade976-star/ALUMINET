@@ -3,7 +3,8 @@ const ForumPost = require('../models/ForumPost');
 exports.createPost = async (req, res) => {
   try {
     const { title, content, category, tags } = req.body;
-    const post = await ForumPost.create({ title, content, category, tags, author: req.user._id });
+    if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
+    const post = await ForumPost.create({ title: title.trim(), content: content.trim(), category, tags, author: req.user._id });
     await post.populate('author', 'name avatar role currentRole');
     res.status(201).json({ post });
   } catch (err) {
@@ -33,14 +34,31 @@ exports.getPosts = async (req, res) => {
   }
 };
 
+// Get post with paginated replies
 exports.getPost = async (req, res) => {
   try {
+    const { replyPage = 1, replyLimit = 20 } = req.query;
     const post = await ForumPost.findByIdAndUpdate(
       req.params.id, { $inc: { views: 1 } }, { new: true }
-    ).populate('author', 'name avatar role currentRole currentCompany')
-     .populate('replies.author', 'name avatar role currentRole');
+    ).populate('author', 'name avatar role currentRole currentCompany');
+
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    res.json({ post });
+
+    // Paginate replies (newest last, sliced)
+    const totalReplies = post.replies.length;
+    const start = (replyPage - 1) * replyLimit;
+    const paginatedReplies = post.replies.slice(start, start + Number(replyLimit));
+
+    // Populate reply authors inline
+    const ForumPostModel = require('../models/ForumPost');
+    const populated = await ForumPostModel.populate(paginatedReplies, {
+      path: 'author', select: 'name avatar role currentRole'
+    });
+
+    res.json({
+      post: { ...post.toObject(), replies: populated },
+      replyMeta: { total: totalReplies, page: Number(replyPage), pages: Math.ceil(totalReplies / replyLimit) }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -51,10 +69,14 @@ exports.addReply = async (req, res) => {
     const post = await ForumPost.findById(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
     if (post.isClosed) return res.status(400).json({ error: 'Post is closed' });
-    post.replies.push({ author: req.user._id, content: req.body.content });
+    if (!req.body.content?.trim()) return res.status(400).json({ error: 'Reply content is required' });
+
+    post.replies.push({ author: req.user._id, content: req.body.content.trim() });
     await post.save();
     await post.populate('replies.author', 'name avatar role currentRole');
-    res.status(201).json({ replies: post.replies });
+    // Return only the new reply (last element)
+    const newReply = post.replies[post.replies.length - 1];
+    res.status(201).json({ reply: newReply, totalReplies: post.replies.length });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -78,7 +100,9 @@ exports.deletePost = async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
-    if (!post.author.equals(req.user._id) && req.user.role !== 'admin') return res.status(403).json({ error: 'Not authorized' });
+    if (!post.author.equals(req.user._id) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
     await post.deleteOne();
     res.json({ message: 'Post deleted' });
   } catch (err) {

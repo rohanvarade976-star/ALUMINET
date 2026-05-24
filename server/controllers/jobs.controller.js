@@ -7,16 +7,17 @@ exports.createJob = async (req, res) => {
     const job = await JobPosting.create({ ...req.body, postedBy: req.user._id });
     await job.populate('postedBy', 'name avatar currentRole currentCompany');
 
-    // Notify all students
+    // Notify all students concurrently (fixed N+1 sequential loop)
     const students = await User.find({ role: 'student', isActive: true }).select('_id').limit(100);
-    for (const s of students) {
-      await createNotification({
+    await Promise.all(students.map(s =>
+      createNotification({
         recipient: s._id, sender: req.user._id, type: 'job_posted',
         title: `New ${job.type} at ${job.company}`,
         message: `${req.user.name} posted: ${job.title}`,
         link: '/jobs', io: req.io
-      });
-    }
+      })
+    ));
+
     res.status(201).json({ job });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };

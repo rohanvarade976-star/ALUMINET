@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const connectDB = async () => {
   await mongoose.connect(process.env.MONGODB_URI);
@@ -30,8 +29,8 @@ const seed = async () => {
 
   const created = [];
   for (const u of USERS) {
-    const hashed = await bcrypt.hash(u.password, 12);
-    const user = await User.create({ ...u, password: hashed });
+    const user = new User(u); // pre-save hook will hash the password automatically
+    await user.save();
     created.push(user);
   }
   console.log(`👥 Created ${created.length} users`);
