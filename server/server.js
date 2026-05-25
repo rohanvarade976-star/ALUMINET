@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 const connectDB = require('./config/db');
+const { isEmailConfigured } = require('./services/emailService');
 const { initSocket } = require('./socket/socketHandler');
 const { decayFraudScores } = require('./middleware/fraud.middleware');
 
@@ -46,7 +47,7 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global rate limiter (more permissive — auth routes have their own strict limiter)
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300 });
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10000 });
 app.use('/api/', limiter);
 
 // Attach socket.io to every request
@@ -84,6 +85,9 @@ setInterval(decayFraudScores, 24 * 60 * 60 * 1000);
 setTimeout(decayFraudScores, 10000);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () =>
-  console.log(`🚀 AlumiNet v4 server on port ${PORT} | AI: Groq llama-3.3-70b-versatile`)
-);
+server.listen(PORT, () => {
+  console.log(`🚀 AlumiNet v4 server on port ${PORT} | AI: Groq llama-3.3-70b-versatile`);
+  console.log(isEmailConfigured()
+    ? '📧 Email: SMTP configured'
+    : '⚠️  Email: NOT configured — set EMAIL_USER & EMAIL_PASS in server/.env (forgot-password will show dev link only)');
+});

@@ -98,26 +98,28 @@ export default function Login() {
       </div>
 
       {/* ── Right Panel ── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
-        <div className="w-full max-w-[400px] animate-fade-in">
+      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 relative transition-colors duration-300">
+        <div className="absolute inset-0 bg-dot-pattern opacity-10 -z-10" />
+        
+        <div className="w-full max-w-[400px] animate-fade-in relative z-10">
 
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm dark:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
               style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-slate-900">AlumiNet</span>
+            <span className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">AlumiNet</span>
           </div>
 
           {/* Heading */}
-          <div className="mb-7">
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
-            <p className="text-slate-500 mt-1.5 text-sm">Sign in to your AlumiNet account</p>
+          <div className="mb-8">
+            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2 drop-shadow-sm">Welcome back</h1>
+            <p className="text-slate-600 dark:text-slate-300 text-sm font-medium">Sign in to your AlumiNet account</p>
           </div>
 
           {/* Form card */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-card p-6">
+          <div className="card-glass p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="label">Email address</label>
@@ -147,27 +149,27 @@ export default function Login() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loggingIn} className="btn-primary w-full py-3 text-sm mt-1">
+              <button type="submit" disabled={loggingIn} className="btn-primary w-full py-3 text-sm mt-2">
                 {loggingIn
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Signing in…</>
                   : <><span>Sign In</span><ArrowRight className="w-4 h-4" /></>}
               </button>
             </form>
 
-            <p className="text-center text-sm text-slate-500 mt-5">
+            <p className="text-center text-sm text-slate-600 dark:text-slate-300 mt-6">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
+              <Link to="/register" className="text-fuchsia-600 dark:text-fuchsia-400 font-bold hover:text-fuchsia-700 dark:hover:text-fuchsia-300 transition-colors">
                 Create account
               </Link>
             </p>
           </div>
 
           {/* Demo access */}
-          <div className="mt-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Quick Demo</span>
-              <div className="flex-1 h-px bg-slate-200" />
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
+              <span className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Quick Demo</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
             </div>
             <div className="grid grid-cols-3 gap-2">
               {demoRoles.map(({ label, email, gradient }) => (

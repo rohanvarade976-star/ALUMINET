@@ -30,17 +30,17 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 transition-colors">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-600 rounded-2xl mb-4 shadow-primary">
             <span className="text-2xl">🎓</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Reset Password</h1>
-          <p className="text-slate-500 mt-1 text-sm">Enter your new password below</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reset Password</h1>
+          <p className="text-slate-500 dark:text-slate-300 mt-1 text-sm">Enter your new password below</p>
         </div>
 
-        <div className="card p-8 animate-scale-in">
+        <div className="card-glass p-8 animate-scale-in">
           {done ? (
             <div className="text-center py-4">
               <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">

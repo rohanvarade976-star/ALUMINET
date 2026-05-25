@@ -53,7 +53,7 @@ const DashboardRouter = () => {
 export default function App() {
   const { init, user, accessToken, loading } = useAuthStore();
   const { connect, disconnect } = useSocketStore();
-  const { initTheme } = useThemeStore();
+  const { theme, initTheme } = useThemeStore();
   
   useEffect(() => { 
     init(); 
@@ -68,7 +68,17 @@ export default function App() {
   return (
     <ErrorBoundary>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Toaster position="top-right" toastOptions={{ duration: 3500, style: { background: "#fff", color: "#1e293b", border: "1px solid #e2e8f0", borderRadius: "12px", fontSize: "14px", fontWeight: "500", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }, success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } }, error: { iconTheme: { primary: "#dc2626", secondary: "#fff" } } }} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: theme === 'dark'
+            ? { background: '#1e293b', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', fontSize: '14px', fontWeight: '500', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }
+            : { background: '#fff', color: '#1e293b', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '14px', fontWeight: '500', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' },
+          success: { iconTheme: { primary: '#16a34a', secondary: theme === 'dark' ? '#1e293b' : '#fff' } },
+          error: { iconTheme: { primary: '#dc2626', secondary: theme === 'dark' ? '#1e293b' : '#fff' } },
+        }}
+      />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

@@ -87,25 +87,25 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-xl transition-all ${isOpen ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200'}`}
+        className={`relative p-2.5 rounded-xl transition-all ${isOpen ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white shadow-inner' : 'text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}`}
       >
         <Bell className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white dark:ring-slate-900 shadow-sm animate-bounce-in">
+          <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-fuchsia-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none shadow-[0_0_10px_rgba(217,70,239,0.8)] animate-bounce-in ring-2 ring-slate-100 dark:ring-slate-900/50">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-card-hover z-50 animate-scale-in overflow-hidden origin-top-right">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+        <div className="absolute right-0 sm:-right-4 mt-4 lg:right-auto lg:left-full lg:top-0 lg:mt-0 lg:ml-6 w-[320px] sm:w-[380px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl rounded-2xl border border-slate-200 dark:border-white/20 shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-[100] animate-scale-in overflow-hidden lg:origin-top-left origin-top-right">
+          <div className="p-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-100/50 dark:bg-white/5">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">Notifications</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">Notifications</h3>
               {unread > 0 && <span className="badge-primary text-[10px] py-0.5">{unread} new</span>}
             </div>
             {unread > 0 && (
-              <button onClick={handleMarkAllRead} className="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1 transition-colors">
+              <button onClick={handleMarkAllRead} className="text-xs font-bold text-fuchsia-600 dark:text-fuchsia-400 hover:text-fuchsia-700 dark:hover:text-fuchsia-300 flex items-center gap-1 transition-colors">
                 <Check className="w-3.5 h-3.5" /> Mark all read
               </button>
             )}
@@ -126,28 +126,28 @@ export default function NotificationBell() {
                 <p className="text-xs text-slate-400 mt-1">Check back later for new updates.</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+              <div className="divide-y divide-slate-100 dark:divide-white/5">
                 {notifications.map((n) => {
                   const conf = typeConfig[n.type] || typeConfig.system;
                   const Icon = conf.icon;
                   return (
                     <button key={n._id} onClick={() => handleNotificationClick(n)}
-                      className={`w-full text-left p-4 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${!n.isRead ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}>
-                      <div className={`w-9 h-9 rounded-xl ${conf.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                        <Icon className={`w-4 h-4 ${conf.color}`} />
+                      className={`w-full text-left p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors ${!n.isRead ? 'bg-fuchsia-50 dark:bg-fuchsia-500/10' : ''}`}>
+                      <div className={`w-10 h-10 rounded-xl ${conf.bg} flex items-center justify-center flex-shrink-0 border border-slate-200 dark:border-white/10 mt-0.5`}>
+                        <Icon className={`w-5 h-5 ${conf.color}`} />
                       </div>
                       <div className="flex-1 min-w-0 pr-2">
                         <p className={`text-sm ${!n.isRead ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-700 dark:text-slate-300'}`}>
                           {n.title}
                         </p>
-                        <p className={`text-xs mt-0.5 leading-relaxed truncate ${!n.isRead ? 'text-slate-600 dark:text-slate-400 font-medium' : 'text-slate-500 dark:text-slate-500'}`}>
+                        <p className={`text-xs mt-1 leading-relaxed truncate ${!n.isRead ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
                           {n.message}
                         </p>
-                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1.5">
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-wide">
                           {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                         </p>
                       </div>
-                      {!n.isRead && <div className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-2 shadow-sm" />}
+                      {!n.isRead && <div className="w-2.5 h-2.5 rounded-full bg-fuchsia-500 flex-shrink-0 mt-2 shadow-[0_0_8px_rgba(217,70,239,0.8)]" />}
                     </button>
                   );
                 })}
@@ -155,9 +155,9 @@ export default function NotificationBell() {
             )}
           </div>
 
-          <div className="p-3 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="p-3 border-t border-slate-200 dark:border-white/10 bg-slate-100/50 dark:bg-white/5">
             <Link to="/notifications" onClick={() => setIsOpen(false)}
-              className="block w-full py-2 text-center text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+              className="block w-full py-2.5 text-center text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors border border-transparent hover:border-slate-300 dark:hover:border-white/20">
               View all notifications
             </Link>
           </div>

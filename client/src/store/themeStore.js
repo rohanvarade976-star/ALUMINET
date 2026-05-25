@@ -1,46 +1,35 @@
 import { create } from 'zustand';
 
-const useThemeStore = create((set) => ({
-  theme: localStorage.getItem('theme') || 'system',
-  setTheme: (theme) => {
-    localStorage.setItem('theme', theme);
-    set({ theme });
-    
-    // Apply immediately
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-  },
-  initTheme: () => {
-    const theme = localStorage.getItem('theme') || 'system';
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-  }
-}));
+const applyTheme = (theme) => {
+  const root = window.document.documentElement;
+  root.classList.remove('light', 'dark');
+  root.classList.add(theme === 'dark' ? 'dark' : 'light');
+};
 
-// Listen for system preference changes
-if (typeof window !== 'undefined') {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    const store = useThemeStore.getState();
-    if (store.theme === 'system') {
-      const root = window.document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(e.matches ? 'dark' : 'light');
-    }
-  });
-}
+const normalizeTheme = (stored) => (stored === 'dark' ? 'dark' : 'light');
+
+const useThemeStore = create((set, get) => ({
+  theme: normalizeTheme(localStorage.getItem('theme')),
+
+  setTheme: (theme) => {
+    const next = theme === 'dark' ? 'dark' : 'light';
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+    set({ theme: next });
+  },
+
+  toggleTheme: () => {
+    const next = get().theme === 'dark' ? 'light' : 'dark';
+    get().setTheme(next);
+  },
+
+  initTheme: () => {
+    const stored = localStorage.getItem('theme');
+    const next = normalizeTheme(stored);
+    if (stored === 'system') localStorage.setItem('theme', next);
+    applyTheme(next);
+    set({ theme: next });
+  },
+}));
 
 export default useThemeStore;

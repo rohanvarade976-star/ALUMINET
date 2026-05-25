@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from '../../api/services';
 import StatCard from '../../components/common/StatCard';
+import PageHeader from '../../components/common/PageHeader';
 import Spinner from '../../components/common/Spinner';
-import { Users, GraduationCap, Calendar, BookOpen, ShieldAlert, UserCheck, Shield, CheckCircle } from 'lucide-react';
+import { Users, GraduationCap, Calendar, BookOpen, ShieldAlert, UserCheck, Shield, CheckCircle, LayoutDashboard } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { format } from 'date-fns';
+import useThemeStore from '../../store/themeStore';
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
   const [fraudLogs, setFraudLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     Promise.all([
@@ -29,6 +32,10 @@ export default function AdminDashboard() {
     name: monthLabels[m._id.month - 1],
     signups: m.count
   }));
+
+  const tooltipStyle = isDark
+    ? { background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: 13, color: '#f8fafc' }
+    : { background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: 13 };
 
   const handleToggle = async (userId, isActive) => {
     try {
@@ -47,124 +54,134 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto animate-fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Admin Dashboard</h1>
-        <p className="page-subtitle">Platform overview and management</p>
-      </div>
+    <div className="page-container max-w-7xl animate-fade-in">
+      <PageHeader
+        title="Admin Dashboard"
+        subtitle="Platform overview and management"
+        icon={LayoutDashboard}
+        actions={
+          <Link to="/admin/verify" className="btn-secondary text-sm">
+            <Shield className="w-4 h-4" /> Verifications
+          </Link>
+        }
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-7">
-        <StatCard icon={Users}       label="Total Users"  value={data?.stats?.totalUsers || 0}  color="primary" />
-        <StatCard icon={UserCheck}   label="Students"     value={data?.stats?.students || 0}    color="blue" />
-        <StatCard icon={GraduationCap} label="Alumni"     value={data?.stats?.alumni || 0}      color="purple" />
-        <StatCard icon={Calendar}    label="Events"       value={data?.stats?.events || 0}       color="green" />
-        <StatCard icon={BookOpen}    label="Sessions"     value={data?.stats?.sessions || 0}     color="amber" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <StatCard icon={Users} label="Total Users" value={data?.stats?.totalUsers || 0} color="primary" />
+        <StatCard icon={UserCheck} label="Students" value={data?.stats?.students || 0} color="blue" />
+        <StatCard icon={GraduationCap} label="Alumni" value={data?.stats?.alumni || 0} color="purple" />
+        <StatCard icon={Calendar} label="Events" value={data?.stats?.events || 0} color="green" />
+        <StatCard icon={BookOpen} label="Sessions" value={data?.stats?.sessions || 0} color="amber" />
         <StatCard icon={ShieldAlert} label="Fraud Alerts" value={data?.stats?.pendingFraud || 0} color="red" />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5 mb-5">
-        {/* Signup Chart */}
-        <div className="lg:col-span-2 card p-5">
-          <h2 className="section-title">Monthly Signups</h2>
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2 card-glass p-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Monthly Signups</h2>
           {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: 13 }} />
-                <Bar dataKey="signups" fill="#4f46e5" radius={[6,6,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="w-full h-[240px] min-h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9'} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="signups" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-52 flex items-center justify-center">
-              <p className="text-slate-400 text-sm">No signup data yet</p>
+            <div className="h-[200px] flex items-center justify-center">
+              <p className="text-slate-500 dark:text-slate-400 text-sm">No signup data yet</p>
             </div>
           )}
         </div>
 
-        {/* Fraud Alerts */}
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title mb-0 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-danger-500" /> Fraud Alerts
+        <div className="card-glass p-6 flex flex-col min-h-[280px]">
+          <div className="flex items-center justify-between gap-3 mb-4 flex-shrink-0">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-rose-500" /> Fraud Alerts
             </h2>
-            <Link to="/admin/verify" className="text-xs text-primary-600 font-medium hover:underline">Verifications →</Link>
+            <Link to="/admin/verify" className="text-xs font-bold text-violet-600 dark:text-violet-400 hover:underline whitespace-nowrap">
+              Queue →
+            </Link>
           </div>
-          {fraudLogs.length === 0 ? (
-            <div className="text-center py-8">
-              <CheckCircle className="w-10 h-10 text-success-400 mx-auto mb-2" />
-              <p className="text-sm text-slate-400 font-medium">All clear! No active alerts</p>
-            </div>
-          ) : fraudLogs.slice(0,5).map(log => (
-            <div key={log._id} className="flex items-start gap-3 p-3 bg-danger-50 rounded-xl border border-danger-100 mb-2 last:mb-0">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-danger-800">{log.user?.name || 'Unknown user'}</p>
-                <p className="text-xs text-danger-600 truncate mt-0.5">{log.reason}</p>
-                <p className="text-xs text-danger-400 mt-0.5">Score: {log.score}</p>
+          <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
+            {fraudLogs.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">All clear</p>
               </div>
-              <button onClick={() => handleResolveFraud(log._id)}
-                className="text-xs bg-danger-600 text-white px-2 py-1 rounded-lg hover:bg-danger-700 flex-shrink-0 transition-all">
-                Resolve
-              </button>
-            </div>
-          ))}
+            ) : fraudLogs.slice(0, 5).map(log => (
+              <div key={log._id} className="flex items-start gap-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/25">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-rose-800 dark:text-rose-200">{log.user?.name || 'Unknown user'}</p>
+                  <p className="text-xs text-rose-700 dark:text-rose-300 truncate mt-0.5">{log.reason}</p>
+                  <p className="text-xs text-rose-600/80 dark:text-rose-400/80 mt-0.5">Score: {log.score}</p>
+                </div>
+                <button type="button" onClick={() => handleResolveFraud(log._id)}
+                  className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg flex-shrink-0 font-semibold">
+                  Resolve
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title mb-0">Recent Users</h2>
-          <span className="text-xs text-slate-400">{data?.stats?.totalUsers || 0} total users</span>
+      <div className="card-glass p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Recent Users</h2>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{data?.stats?.totalUsers || 0} total</span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
             <thead>
-              <tr className="text-left border-b border-slate-100">
-                <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">User</th>
-                <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Role</th>
-                <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Verified</th>
-                <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Status</th>
-                <th className="pb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Action</th>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Verified</th>
+                <th>Status</th>
+                <th className="text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody>
               {users.map(u => (
-                <tr key={u._id} className="hover:bg-slate-50 transition-all">
-                  <td className="py-3 pr-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <tr key={u._id}>
+                  <td>
+                    <div className="flex items-center gap-3 min-w-[180px]">
+                      <div className="w-9 h-9 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-slate-200 dark:ring-white/10">
                         {u.avatar ? <img src={u.avatar} alt="" className="w-full h-full object-cover" />
-                          : <span className="text-primary-700 font-bold text-xs">{u.name?.[0]}</span>}
+                          : <span className="text-violet-700 dark:text-violet-200 font-bold text-xs">{u.name?.[0]}</span>}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
-                        <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{u.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 pr-4">
+                  <td>
                     <span className={`badge capitalize ${
-                      u.role==='admin' ? 'bg-red-50 text-red-700'
-                      : u.role==='alumni' ? 'bg-purple-50 text-purple-700'
+                      u.role === 'admin' ? 'badge-danger'
+                      : u.role === 'alumni' ? 'badge-violet'
                       : 'badge-primary'}`}>{u.role}</span>
                   </td>
-                  <td className="py-3 pr-4">
+                  <td>
                     <span className={`badge ${u.isVerified ? 'badge-success' : 'badge-warning'}`}>
-                      {u.isVerified ? '✓ Verified' : 'Pending'}
+                      {u.isVerified ? 'Verified' : 'Pending'}
                     </span>
                   </td>
-                  <td className="py-3 pr-4">
+                  <td>
                     <span className={`badge ${u.isActive ? 'badge-success' : 'badge-danger'}`}>
                       {u.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="py-3">
-                    <button onClick={() => handleToggle(u._id, u.isActive)}
-                      className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
-                        u.isActive ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
+                  <td className="text-right">
+                    <button type="button" onClick={() => handleToggle(u._id, u.isActive)}
+                      className={`text-xs px-3 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                        u.isActive
+                          ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-200 hover:bg-rose-200 dark:hover:bg-rose-500/30'
+                          : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-200 hover:bg-emerald-200 dark:hover:bg-emerald-500/30'}`}>
                       {u.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   </td>

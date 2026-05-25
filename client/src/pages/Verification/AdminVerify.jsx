@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Eye, Shield, Clock, FileText, Users } from 'lucide-react';
 import api from '../../api/axiosInstance';
+import { assetUrl } from '../../api/config';
+import PageHeader from '../../components/common/PageHeader';
+import TabBar from '../../components/common/TabBar';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
@@ -10,41 +13,68 @@ function ReviewModal({ verif, onClose, onDone }) {
   const [loading, setLoading] = useState(false);
   const submit = async () => {
     setLoading(true);
-    try { await api.put(`/verification/${verif._id}/review`, { status, reviewNote: note }); toast.success(`Request ${status}`); onDone(); }
-    catch { toast.error('Failed'); }
-    finally { setLoading(false); }
+    try {
+      await api.put(`/verification/${verif._id}/review`, { status, reviewNote: note });
+      toast.success(`Request ${status}`);
+      onDone();
+    } catch {
+      toast.error('Failed');
+    } finally {
+      setLoading(false);
+    }
   };
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card p-6 w-full max-w-md animate-scale-in shadow-xl">
-        <h3 className="text-lg font-bold text-slate-900 mb-4">Review Verification Request</h3>
-        <div className="p-4 bg-slate-50 rounded-xl mb-4 border border-slate-100">
-          <p className="font-semibold text-slate-900">{verif.user?.name}</p>
-          <p className="text-sm text-slate-500">{verif.user?.email} · <span className="capitalize">{verif.user?.role}</span></p>
-          <p className="text-xs text-slate-400 mt-1">Submitted {format(new Date(verif.createdAt), 'MMM d, yyyy h:mm a')}</p>
+    <div className="modal-overlay">
+      <div className="modal-panel max-w-md w-full">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Review Verification</h3>
+        <div className="p-4 rounded-xl mb-4 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5">
+          <p className="font-semibold text-slate-900 dark:text-white">{verif.user?.name}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{verif.user?.email} · <span className="capitalize">{verif.user?.role}</span></p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Submitted {format(new Date(verif.createdAt), 'MMM d, yyyy h:mm a')}</p>
         </div>
         <div className="space-y-2 mb-4">
-          <p className="text-sm font-semibold text-slate-600 mb-2">Uploaded Documents</p>
-          {verif.collegeIdUrl && <a href={`http://localhost:5000${verif.collegeIdUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary-600 hover:underline"><FileText className="w-4 h-4" /> College ID Card</a>}
-          {verif.degreeUrl && <a href={`http://localhost:5000${verif.degreeUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary-600 hover:underline"><FileText className="w-4 h-4" /> Degree Certificate</a>}
-          {verif.offerLetterUrl && <a href={`http://localhost:5000${verif.offerLetterUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary-600 hover:underline"><FileText className="w-4 h-4" /> Offer Letter</a>}
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Documents</p>
+          {verif.collegeIdUrl && (
+            <a href={assetUrl(verif.collegeIdUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-violet-600 dark:text-violet-400 hover:underline font-medium">
+              <FileText className="w-4 h-4 flex-shrink-0" /> College ID Card
+            </a>
+          )}
+          {verif.degreeUrl && (
+            <a href={assetUrl(verif.degreeUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-violet-600 dark:text-violet-400 hover:underline font-medium">
+              <FileText className="w-4 h-4 flex-shrink-0" /> Degree Certificate
+            </a>
+          )}
+          {verif.offerLetterUrl && (
+            <a href={assetUrl(verif.offerLetterUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-violet-600 dark:text-violet-400 hover:underline font-medium">
+              <FileText className="w-4 h-4 flex-shrink-0" /> Offer Letter
+            </a>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {['approved','rejected'].map(s => (
-            <button key={s} onClick={() => setStatus(s)}
-              className={`py-2.5 rounded-xl text-sm font-semibold capitalize border-2 transition-all ${status === s ? (s==='approved' ? 'border-success-500 bg-success-50 text-success-700' : 'border-danger-500 bg-danger-50 text-danger-700') : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}>
-              {s === 'approved' ? '✅ Approve' : '❌ Reject'}
+          {['approved', 'rejected'].map(s => (
+            <button key={s} type="button" onClick={() => setStatus(s)}
+              className={`py-2.5 rounded-xl text-sm font-semibold capitalize border-2 transition-all ${
+                status === s
+                  ? (s === 'approved'
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-200'
+                    : 'border-rose-500 bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-200')
+                  : 'border-slate-200 dark:border-white/15 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/25'
+              }`}>
+              {s === 'approved' ? 'Approve' : 'Reject'}
             </button>
           ))}
         </div>
         {status === 'rejected' && (
-          <textarea className="input resize-none mb-4" rows={2} placeholder="Reason for rejection (sent to user via email)..."
-            value={note} onChange={e=>setNote(e.target.value)} />
+          <textarea className="input resize-none mb-4" rows={2} placeholder="Reason for rejection (optional)..."
+            value={note} onChange={e => setNote(e.target.value)} />
         )}
-        <div className="flex gap-3">
-          <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-          <button onClick={submit} disabled={loading} className={`flex-1 font-semibold py-2.5 rounded-xl transition-all ${status==='approved' ? 'bg-success-600 hover:bg-success-700 text-white' : 'bg-danger-600 hover:bg-danger-700 text-white'}`}>
-            {loading ? 'Submitting…' : 'Confirm Decision'}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
+          <button type="button" onClick={submit} disabled={loading}
+            className={`flex-1 font-semibold py-2.5 rounded-xl transition-all ${
+              status === 'approved' ? 'btn-primary' : 'bg-rose-600 hover:bg-rose-700 text-white'
+            }`}>
+            {loading ? 'Submitting…' : 'Confirm'}
           </button>
         </div>
       </div>
@@ -58,67 +88,89 @@ export default function AdminVerify() {
   const [tab, setTab] = useState('pending');
   const [selected, setSelected] = useState(null);
 
-  const fetch = (s) => { setLoading(true); api.get(`/verification/all?status=${s}`).then(r=>setVerifs(r.data.verifs||[])).finally(()=>setLoading(false)); };
+  const fetch = (s) => {
+    setLoading(true);
+    api.get(`/verification/all?status=${s}`)
+      .then(r => setVerifs(r.data.verifs || []))
+      .finally(() => setLoading(false));
+  };
+
   useEffect(() => { fetch(tab); }, [tab]);
 
   const tabs = [
-    { key: 'pending',  label: 'Pending',  icon: Clock },
+    { key: 'pending', label: 'Pending', icon: Clock },
     { key: 'approved', label: 'Approved', icon: CheckCircle },
     { key: 'rejected', label: 'Rejected', icon: XCircle },
   ];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto animate-fade-in">
-      <div className="page-header">
-        <h1 className="page-title flex items-center gap-2"><Shield className="w-6 h-6 text-primary-600" /> Verification Queue</h1>
-        <p className="page-subtitle">Review and approve user verification requests</p>
-      </div>
+    <div className="page-container max-w-5xl animate-fade-in">
+      <PageHeader
+        title="Verification Queue"
+        subtitle="Review and approve user verification requests"
+        icon={Shield}
+        breadcrumb={[
+          { label: 'Admin', to: '/dashboard' },
+          { label: 'Verifications' },
+        ]}
+      />
 
-      <div className="flex gap-2 mb-6">
-        {tabs.map(({ key, label, icon: Icon }) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all border ${tab===key ? 'bg-primary-600 text-white border-primary-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}>
-            <Icon className="w-3.5 h-3.5" />{label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {loading ? (
-        <div className="space-y-3">{[1,2,3].map(i=><div key={i} className="skeleton h-20 rounded-2xl"/>)}</div>
+        <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="skeleton h-24 rounded-2xl" />)}</div>
       ) : verifs.length === 0 ? (
-        <div className="card p-14 text-center">
-          <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="font-semibold text-slate-500">No {tab} requests</p>
+        <div className="card-glass p-14 text-center">
+          <Users className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <p className="font-semibold text-slate-600 dark:text-slate-300">No {tab} requests</p>
         </div>
       ) : (
         <div className="space-y-3">
           {verifs.map(v => (
-            <div key={v._id} className="card-hover p-5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                {v.user?.avatar ? <img src={v.user.avatar} alt="" className="w-full h-full object-cover" /> : <span className="text-primary-700 font-bold text-lg">{v.user?.name?.[0]}</span>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-slate-900">{v.user?.name}</p>
-                  <span className={`badge capitalize ${v.user?.role==='alumni' ? 'bg-purple-50 text-purple-700' : 'badge-primary'}`}>{v.user?.role}</span>
+            <div key={v._id} className="card-glass p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-slate-200 dark:ring-white/10">
+                  {v.user?.avatar
+                    ? <img src={v.user.avatar} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-violet-700 dark:text-violet-200 font-bold text-lg">{v.user?.name?.[0]}</span>}
                 </div>
-                <p className="text-sm text-slate-500">{v.user?.email}</p>
-                <div className="flex items-center gap-3 mt-1.5">
-                  {v.collegeIdUrl && <span className="text-xs text-success-600 font-medium">✓ ID Card</span>}
-                  {v.degreeUrl && <span className="text-xs text-success-600 font-medium">✓ Degree</span>}
-                  {v.offerLetterUrl && <span className="text-xs text-success-600 font-medium">✓ Offer Letter</span>}
-                  <span className="text-xs text-slate-400">{format(new Date(v.createdAt), 'MMM d, yyyy')}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-slate-900 dark:text-white">{v.user?.name}</p>
+                    <span className={`badge capitalize ${v.user?.role === 'alumni' ? 'badge-violet' : 'badge-primary'}`}>
+                      {v.user?.role}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 truncate">{v.user?.email}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                    {v.collegeIdUrl && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">ID Card</span>}
+                    {v.degreeUrl && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Degree</span>}
+                    {v.offerLetterUrl && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Offer</span>}
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{format(new Date(v.createdAt), 'MMM d, yyyy')}</span>
+                  </div>
                 </div>
               </div>
-              {tab === 'pending'
-                ? <button onClick={()=>setSelected(v)} className="btn-primary text-sm"><Eye className="w-4 h-4" /> Review</button>
-                : <span className={`badge ${tab==='approved' ? 'badge-success' : 'badge-danger'} capitalize`}>{tab}</span>
-              }
+              <div className="flex sm:flex-col items-stretch sm:items-end gap-2 flex-shrink-0 sm:min-w-[120px]">
+                {tab === 'pending' ? (
+                  <button type="button" onClick={() => setSelected(v)} className="btn-primary text-sm w-full sm:w-auto justify-center">
+                    <Eye className="w-4 h-4" /> Review
+                  </button>
+                ) : (
+                  <span className={`badge capitalize justify-center ${tab === 'approved' ? 'badge-success' : 'badge-danger'}`}>{tab}</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
-      {selected && <ReviewModal verif={selected} onClose={()=>setSelected(null)} onDone={()=>{setSelected(null);fetch(tab);}} />}
+
+      {selected && (
+        <ReviewModal
+          verif={selected}
+          onClose={() => setSelected(null)}
+          onDone={() => { setSelected(null); fetch(tab); }}
+        />
+      )}
     </div>
   );
 }

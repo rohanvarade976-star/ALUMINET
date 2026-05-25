@@ -24,7 +24,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [typingUsers, setTypingUsers] = useState([]);
-  const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const typingTimer = useRef(null);
 
   // Load messages for room
@@ -54,9 +54,11 @@ export default function ChatPage() {
     return () => { socket.off('new_message', onMsg); socket.off('user_typing', onTyping); };
   }, [socket]);
 
-  // Auto scroll
+  // Auto scroll isolated to messages container
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSend = (e) => {
@@ -77,45 +79,45 @@ export default function ChatPage() {
   const isOnline = (userId) => onlineUsers.includes(userId?.toString());
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full w-full">
       {/* Rooms sidebar */}
-      <div className="w-56 bg-white border-r border-gray-100 flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-800 text-sm">Channels</h2>
+      <div className="w-56 bg-white/80 dark:bg-white/5 backdrop-blur-md border-r border-slate-200 dark:border-white/10 flex flex-col flex-shrink-0 transition-colors">
+        <div className="p-4 border-b border-slate-200 dark:border-white/10">
+          <h2 className="font-semibold text-slate-900 dark:text-white text-sm">Channels</h2>
         </div>
         <div className="flex-1 p-2 overflow-y-auto">
           {GLOBAL_ROOMS.map(room => (
             <button key={room.id} onClick={() => setActiveRoom(room.id)}
               className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-all ${
-                activeRoom === room.id ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50'}`}>
+                activeRoom === room.id ? 'bg-gradient-to-r from-violet-600/90 to-fuchsia-600/90 dark:from-violet-600/80 dark:to-fuchsia-600/80 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10'}`}>
               <div className="flex items-center gap-2">
                 <Hash className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="text-sm font-medium">{room.name}</span>
               </div>
-              <p className="text-xs text-gray-400 ml-5.5 pl-0.5 mt-0.5">{room.desc}</p>
+              <p className={`text-xs ml-5.5 pl-0.5 mt-0.5 ${activeRoom === room.id ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>{room.desc}</p>
             </button>
           ))}
         </div>
         {/* Online count */}
-        <div className="p-3 border-t border-gray-100">
-          <p className="text-xs text-gray-400">
-            <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-1.5"></span>
+        <div className="p-3 border-t border-slate-200 dark:border-white/10">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-1.5 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
             {onlineUsers.length} online
           </p>
         </div>
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-white/60 dark:bg-black/20 backdrop-blur-sm transition-colors">
         {/* Header */}
-        <div className="bg-white border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-          <Hash className="w-4 h-4 text-gray-400" />
-          <h2 className="font-semibold text-gray-800">{GLOBAL_ROOMS.find(r => r.id === activeRoom)?.name || activeRoom}</h2>
-          <span className="text-sm text-gray-400 ml-1">— {GLOBAL_ROOMS.find(r => r.id === activeRoom)?.desc}</span>
+        <div className="border-b border-slate-200 dark:border-white/10 px-5 py-3 flex items-center gap-2 bg-white/40 dark:bg-white/5 backdrop-blur-md z-10 shadow-sm">
+          <Hash className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+          <h2 className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">{GLOBAL_ROOMS.find(r => r.id === activeRoom)?.name || activeRoom}</h2>
+          <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">— {GLOBAL_ROOMS.find(r => r.id === activeRoom)?.desc}</span>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-1">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-1">
           {loading ? <Spinner /> : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
               <MessageSquare className="w-10 h-10 mb-3 opacity-30" />
@@ -135,12 +137,12 @@ export default function ChatPage() {
                 )}
                 <div className={`max-w-xs lg:max-w-md group ${isMine ? 'items-end' : 'items-start'} flex flex-col`}>
                   {showAvatar && !isMine && (
-                    <span className="text-xs text-gray-500 mb-1 ml-1">{msg.sender?.name}</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 ml-1">{msg.sender?.name}</span>
                   )}
-                  <div className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed break-words ${
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words shadow-sm ${
                     isMine
-                      ? 'bg-primary-600 text-white rounded-br-sm'
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm'
+                      ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-br-sm'
+                      : 'bg-white/90 dark:bg-white/10 border border-slate-200 dark:border-white/20 text-slate-900 dark:text-white rounded-bl-sm backdrop-blur-md'
                   } ${msg.isDeleted ? 'opacity-50 italic' : ''}`}>
                     {msg.content}
                   </div>
@@ -163,11 +165,10 @@ export default function ChatPage() {
               {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing…
             </div>
           )}
-          <div ref={bottomRef} />
         </div>
 
         {/* Input */}
-        <div className="bg-white border-t border-gray-100 p-4">
+        <div className="border-t border-slate-200 dark:border-white/10 p-4 bg-white/40 dark:bg-white/5 backdrop-blur-md z-10">
           <form onSubmit={handleSend} className="flex items-center gap-3">
             <input
               className="input flex-1"
@@ -177,8 +178,8 @@ export default function ChatPage() {
               maxLength={2000}
             />
             <button type="submit" disabled={!input.trim()}
-              className="w-10 h-10 flex items-center justify-center bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0">
-              <Send className="w-4 h-4" />
+              className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 shadow-md">
+              <Send className="w-4 h-4 ml-0.5" />
             </button>
           </form>
         </div>

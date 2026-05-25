@@ -88,24 +88,25 @@ export default function Register() {
       </div>
 
       {/* ── Right Panel ── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50 overflow-y-auto">
-        <div className="w-full max-w-[440px] animate-fade-in py-8">
+      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 overflow-y-auto relative transition-colors duration-300">
+        <div className="absolute inset-0 bg-dot-pattern opacity-10 -z-10 pointer-events-none" />
+        <div className="w-full max-w-[440px] animate-fade-in py-8 relative z-10">
 
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm dark:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
               style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-slate-900">AlumiNet</span>
+            <span className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">AlumiNet</span>
           </div>
 
           <div className="mb-7">
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Create account</h1>
-            <p className="text-slate-500 mt-1.5 text-sm">Join thousands of students and alumni</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Create account</h1>
+            <p className="text-slate-500 dark:text-slate-300 mt-1.5 text-sm font-medium">Join thousands of students and alumni</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-card p-6">
+          <div className="card-glass p-6">
             {/* Role selector */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               {[
@@ -115,12 +116,12 @@ export default function Register() {
                 <button key={r} type="button" onClick={() => setForm(p => ({ ...p, role: r }))}
                   className={`p-3 rounded-xl border-2 text-left transition-all ${
                     form.role === r
-                      ? 'border-primary-500 bg-primary-50 shadow-sm'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                      ? 'border-violet-500 dark:border-violet-400 bg-violet-50 dark:bg-violet-500/20 shadow-sm'
+                      : 'border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/25 bg-white/80 dark:bg-white/5'
                   }`}>
                   <span className="text-xl">{emoji}</span>
-                  <p className={`text-sm font-bold mt-1 ${form.role === r ? 'text-primary-700' : 'text-slate-700'}`}>{label}</p>
-                  <p className={`text-xs mt-0.5 ${form.role === r ? 'text-primary-600' : 'text-slate-400'}`}>{desc}</p>
+                  <p className={`text-sm font-bold mt-1 ${form.role === r ? 'text-violet-700 dark:text-violet-200' : 'text-slate-700 dark:text-slate-200'}`}>{label}</p>
+                  <p className={`text-xs mt-0.5 ${form.role === r ? 'text-violet-600 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400'}`}>{desc}</p>
                 </button>
               ))}
             </div>
@@ -147,7 +148,7 @@ export default function Register() {
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input type={showPw ? 'text' : 'password'} required minLength={6} className="input pl-10 pr-10" placeholder="Min. 6 characters" value={form.password} onChange={f('password')} />
-                  <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -174,9 +175,9 @@ export default function Register() {
               </button>
             </form>
 
-            <p className="text-center text-sm text-slate-500 mt-6">
+            <p className="text-center text-sm text-slate-600 dark:text-slate-300 mt-6">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
+              <Link to="/login" className="text-fuchsia-600 dark:text-fuchsia-400 font-bold hover:text-fuchsia-700 dark:hover:text-fuchsia-300 transition-colors">
                 Sign in
               </Link>
             </p>

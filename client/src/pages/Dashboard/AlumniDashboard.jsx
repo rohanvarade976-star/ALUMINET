@@ -28,12 +28,12 @@ export default function AlumniDashboard() {
   const avgRating = completed.filter(s => s.rating).reduce((a, b, _, arr) => a + b.rating / arr.length, 0);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto animate-fade-in">
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, {user?.name?.split(' ')[0]} 👋
+    <div className="page-container max-w-6xl animate-fade-in">
+      <div className="page-header">
+        <h1 className="page-title">
+          Welcome back, <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent">{user?.name?.split(' ')[0]}</span> 👋
         </h1>
-        <p className="text-slate-500 mt-1">Manage your mentorship sessions and make an impact.</p>
+        <p className="page-subtitle">Manage your mentorship sessions and make an impact.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
@@ -45,7 +45,7 @@ export default function AlumniDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
         {/* Pending requests */}
-        <div className="card p-5">
+        <div className="card-glass p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 bg-amber-50 rounded-lg flex items-center justify-center">
               <Clock className="w-4 h-4 text-amber-600" />
@@ -87,7 +87,7 @@ export default function AlumniDashboard() {
         </div>
 
         {/* Confirmed sessions */}
-        <div className="card p-5">
+        <div className="card-glass p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-4 h-4 text-success-600" />

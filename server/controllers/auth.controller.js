@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
-const { sendEmail } = require('../services/emailService');
+const { sendEmail, isEmailConfigured } = require('../services/emailService');
 
 // Guard: crash on startup if JWT secrets are not set
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
@@ -176,7 +176,7 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase() });
     // Always return success to prevent email enumeration
-    if (!user) return res.json({ message: 'If that email exists, a reset link has been sent.' });
+    if (!user) return res.json({ message: 'If that email exists, a reset link has been sent.', emailSent: true });
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -185,7 +185,7 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${rawToken}`;
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: user.email,
       subject: '🔑 Reset your AlumiNet password',
       html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px">
@@ -194,10 +194,27 @@ exports.forgotPassword = async (req, res) => {
         <a href="${resetUrl}" style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:16px">
           Reset Password
         </a>
+        <p style="color:#64748b;font-size:13px;margin-top:16px">If you did not request this, ignore this email.</p>
       </div>`
     });
 
-    res.json({ message: 'If that email exists, a reset link has been sent.' });
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    if (!emailResult.ok) {
+      console.warn('⚠️ Password reset email not sent:', emailResult.error || 'SMTP not configured');
+      if (isDev) {
+        console.log('🔗 Dev reset link (copy to browser):', resetUrl);
+      }
+    }
+
+    res.json({
+      message: emailResult.ok
+        ? 'If that email exists, a reset link has been sent.'
+        : 'Reset link created. Email could not be sent — check server email settings or use the dev link below.',
+      emailSent: emailResult.ok,
+      emailConfigured: isEmailConfigured(),
+      ...(isDev && !emailResult.ok ? { devResetUrl: resetUrl } : {}),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

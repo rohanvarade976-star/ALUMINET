@@ -2,18 +2,19 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { forumApi } from '../../api/services';
 import useAuthStore from '../../store/authStore';
-import Spinner from '../../components/common/Spinner';
+import PageHeader from '../../components/common/PageHeader';
+import EmptyState from '../../components/common/EmptyState';
 import { MessageSquare, ThumbsUp, Eye, Plus, Search, Pin, X, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ['all','career','technical','campus','general','mentorship'];
 const CAT_STYLES = {
-  career:     'bg-blue-50 text-blue-700',
-  technical:  'bg-purple-50 text-purple-700',
-  campus:     'bg-green-50 text-green-700',
-  general:    'bg-slate-100 text-slate-600',
-  mentorship: 'bg-orange-50 text-orange-700',
+  career:     'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-500/30',
+  technical:  'bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-100 dark:border-purple-500/30',
+  campus:     'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-500/30',
+  general:    'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10',
+  mentorship: 'bg-orange-50 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-100 dark:border-orange-500/30',
 };
 
 function NewPostModal({ onClose, onCreated }) {
@@ -31,10 +32,10 @@ function NewPostModal({ onClose, onCreated }) {
     finally { setLoading(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl animate-scale-in">
+    <div className="modal-overlay">
+      <div className="modal-panel max-w-lg">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-slate-900">New Discussion</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">New Discussion</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={submit} className="space-y-4">
@@ -90,16 +91,17 @@ export default function Forum() {
   const handleSearch = (e) => { e.preventDefault(); setPage(1); fetchPosts(category, search, 1); };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto animate-fade-in">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="page-title">Community Forum</h1>
-          <p className="page-subtitle">Ask questions, share knowledge, connect with peers</p>
-        </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> New Post
-        </button>
-      </div>
+    <div className="page-container max-w-4xl animate-fade-in">
+      <PageHeader
+        title="Community Forum"
+        subtitle="Ask questions, share knowledge, connect with peers"
+        icon={MessageSquare}
+        actions={
+          <button type="button" onClick={() => setShowModal(true)} className="btn-primary">
+            <Plus className="w-4 h-4" /> New Post
+          </button>
+        }
+      />
 
       {/* Search */}
       <form onSubmit={handleSearch} className="relative mb-5">
@@ -114,7 +116,9 @@ export default function Forum() {
         {CATEGORIES.map(c => (
           <button key={c} onClick={() => { setCategory(c); setPage(1); }}
             className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold capitalize transition-all border ${
-              category === c ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>
+              category === c
+                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white border-transparent shadow-sm'
+                : 'bg-white/80 dark:bg-white/5 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/40'}`}>
             {c}
           </button>
         ))}
@@ -123,10 +127,14 @@ export default function Forum() {
       {loading ? (
         <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="skeleton h-24 rounded-2xl" />)}</div>
       ) : posts.length === 0 ? (
-        <div className="card p-14 text-center">
-          <MessageSquare className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="font-semibold text-slate-400">No discussions found</p>
-          <button onClick={() => setShowModal(true)} className="btn-primary mt-4 text-sm">Start a discussion</button>
+        <div className="card-glass">
+          <EmptyState
+            icon={MessageSquare}
+            title="No discussions found"
+            description="Be the first to start a conversation in this category."
+            actionLabel="Start a discussion"
+            onAction={() => setShowModal(true)}
+          />
         </div>
       ) : (
         <div className="space-y-3">
@@ -141,11 +149,11 @@ export default function Forum() {
                         <Pin className="w-3 h-3" /> Pinned
                       </span>
                     )}
-                    <span className={`badge ${CAT_STYLES[post.category] || 'badge-gray'} capitalize`}>{post.category}</span>
+                    <span className={`badge border ${CAT_STYLES[post.category] || 'badge-gray'} capitalize`}>{post.category}</span>
                   </div>
-                  <h3 className="font-bold text-slate-900 text-base leading-snug hover:text-primary-600 transition-colors">{post.title}</h3>
-                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">{post.content}</p>
-                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-400">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug hover:text-violet-600 dark:hover:text-violet-400 transition-colors">{post.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{post.content}</p>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-1">
                       <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
                         {post.author?.avatar
